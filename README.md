@@ -20,8 +20,14 @@ Cache **API responses** across **any runtime** - Cloudflare Workers, Vercel Edge
 ## Installation
 
 ```bash
+npm install hono-universal-cache
+# or
 pnpm add hono-universal-cache
+# or
+yarn add hono-universal-cache
 ```
+
+> **Note:** `unstorage` is included as a dependency - no need to install it separately!
 
 ## Quick Start
 
