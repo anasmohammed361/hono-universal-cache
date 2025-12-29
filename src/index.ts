@@ -7,7 +7,6 @@ import { DEFAULT_CACHEABLE_STATUS_CODES } from "./types"
 import {
   generateCacheKey,
   isCacheableStatus,
-  shouldSkipCache,
 } from "./utils"
 import { getRuntimeKey } from "hono/adapter"
 
@@ -74,25 +73,18 @@ export const universalCache = (options: CacheOptions): MiddlewareHandler => {
       return
     }
 
-    // Skip caching if Vary: * is present
-    if (shouldSkipCache(c.res)) {
-      return
-    }
-
     // Clone response for caching
     const res = c.res.clone()
 
-    // Store in cache (non-blocking if executionCtx available)
+    // Store in cache
     const cachePromise = cacheManager.set(key, res)
 
     // Use waitUntil if available (Cloudflare Workers, Vercel Edge)
     if (getRuntimeKey() === 'workerd') {
       c?.executionCtx?.waitUntil?.(cachePromise)
     } else {
-      // For other runtimes, cache asynchronously but don't block response
-      cachePromise.catch((error) => {
-        console.error('Background cache storage failed:', error)
-      })
+      // For other runtimes, await the cache write
+      await cachePromise
     }
   }
 }

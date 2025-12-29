@@ -376,58 +376,6 @@ describe('universalCache - Dynamic Cache Names', () => {
   })
 })
 
-describe('universalCache - Vary Header Handling', () => {
-  let app: Hono
-
-  beforeEach(() => {
-    app = new Hono()
-  })
-
-  it('should not cache responses with Vary: *', async () => {
-    let callCount = 0
-
-    app.use(
-      '*',
-      universalCache({
-        cacheName: 'vary-star-cache',
-      })
-    )
-
-    app.get('/test', (c) => {
-      callCount++
-      c.header('Vary', '*')
-      return c.text('Response')
-    })
-
-    await app.request('/test')
-    await app.request('/test')
-
-    expect(callCount).toBe(2) // Not cached due to Vary: *
-  })
-
-  it('should cache responses with regular Vary headers', async () => {
-    let callCount = 0
-
-    app.use(
-      '*',
-      universalCache({
-        cacheName: 'vary-cache',
-      })
-    )
-
-    app.get('/test', (c) => {
-      callCount++
-      c.header('Vary', 'Accept-Encoding')
-      return c.text('Response')
-    })
-
-    await app.request('/test')
-    await app.request('/test')
-
-    expect(callCount).toBe(1) // Cached normally
-  })
-})
-
 describe('universalCache - Response Types', () => {
   let app: Hono
 

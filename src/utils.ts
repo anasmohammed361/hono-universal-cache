@@ -18,23 +18,6 @@ export async function generateCacheKey(
 }
 
 /**
- * Checks if a response should skip caching based on Vary header.
- * 
- * Per RFC 9111 Section 4.1, responses with "Vary: *" should not be cached
- * as they indicate the response varies in unpredictable ways.
- * 
- * @param res - Response to check
- * @returns True if cache should be skipped
- */
-export function shouldSkipCache(res: Response): boolean {
-  const vary = res.headers.get('Vary')
-  // Don't cache for Vary: *
-  // https://www.rfc-editor.org/rfc/rfc9111#section-4.1
-  // Also note that some runtimes throw a TypeError for it.
-  return vary !== null && vary.includes('*')
-}
-
-/**
  * Checks if a status code is cacheable.
  * 
  * @param status - HTTP status code
