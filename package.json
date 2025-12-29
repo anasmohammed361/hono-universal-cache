@@ -1,7 +1,7 @@
 {
   "name": "hono-universal-cache",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Universal cache middleware for Hono powered by unstorage - works across Cloudflare Workers, Vercel Edge, Node.js, Bun, Deno, and more.",
   "author": "Anas Mohammed",
   "license": "MIT",
