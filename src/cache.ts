@@ -58,7 +58,12 @@ export class CacheManager {
   private deserializeResponse(cached: CachedResponse): Response {
     const headers = new Headers(cached.headers)
 
-    return new Response(cached.body, {
+    // Status codes 204 and 205 cannot have a body
+    const body = (cached.status === 204 || cached.status === 205) 
+      ? null 
+      : cached.body
+
+    return new Response(body, {
       status: cached.status,
       statusText: cached.statusText,
       headers
