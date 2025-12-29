@@ -1,0 +1,138 @@
+---
+title: How It Works
+description: Understanding the caching mechanism and important notes
+---
+
+# How It Works
+
+Learn about the internal workings of hono-universal-cache and important considerations.
+
+## Caching Flow
+
+The middleware follows this process for each request:
+
+1. **Request arrives** → Middleware generates cache key
+2. **Check cache** → Retrieve from storage if exists and not expired
+3. **Cache hit** → Return cached response immediately
+4. **Cache miss** → Execute route handler
+5. **Check cacheability** → Verify status code is cacheable
+6. **Store response** → Save text body to storage with TTL metadata (non-blocking)
+7. **Return response** → Send to client
+
+## Cache Key Generation
+
+By default, the cache key is generated from:
+
+- The full request URL (including query parameters)
+- The HTTP method
+
+You can customize this behavior with the `keyGenerator` option:
+
+```typescript
+app.use(
+  "*",
+  universalCache({
+    cacheName: "api-cache",
+    keyGenerator: (c) => {
+      // Custom key logic
+      return `${c.req.method}:${c.req.url}`;
+    },
+  }),
+);
+```
+
+## TTL (Time-To-Live)
+
+When you specify a TTL, the middleware stores metadata alongside the cached response:
+
+```typescript
+{
+  body: "response body",
+  status: 200,
+  headers: { /* response headers */ },
+  expiresAt: 1234567890 // Unix timestamp
+}
+```
+
+On subsequent requests, the middleware checks if the current time exceeds `expiresAt` and invalidates expired entries automatically.
+
+## Important Notes
+
+### Optimized for API Responses
+
+This middleware is designed for **text-based API responses**:
+
+- ✅ **JSON APIs** - Perfect use case
+- ✅ **Text responses** - Works great
+- ✅ **HTML pages** - Fully supported
+- ✅ **XML/RSS feeds** - No problem
+- ❌ **Binary assets** (images, PDFs, videos) - Use CDN/edge caching instead
+
+<Callout type="warn">
+  The middleware uses `response.text()` for optimal storage efficiency. For static assets, use CDN caching (Cloudflare, CloudFront), object storage (S3, R2, Blob Storage), or Hono's built-in static file serving with CDN.
+</Callout>
+
+### Storage-Only Caching
+
+This middleware handles **server-side storage caching only**:
+
+- ✅ Stores responses in Redis, KV, filesystem, etc.
+- ✅ Caches based on status codes and TTL configuration
+- 💡 Independent of HTTP caching headers - works purely at the storage layer
+
+The middleware does not:
+
+- Set or modify `Cache-Control` headers
+- Respect browser cache directives
+- Handle `ETag` or `Last-Modified` headers
+- Process `Vary` headers
+
+If you need HTTP-level caching, you should set appropriate headers in your route handlers separately.
+
+### Non-blocking Cache Writes
+
+Cache writes happen asynchronously and don't block responses:
+
+- **Cloudflare Workers/Vercel Edge**: Uses `waitUntil()` for background writes
+- **Other runtimes**: Uses promises with error handling
+
+This means:
+
+1. The response is sent to the client immediately
+2. The cache write happens in the background
+3. Failed cache writes don't affect the response
+4. Subsequent requests may not see the cached value immediately
+
+### Memory Considerations
+
+When using in-memory storage (default):
+
+- Cache is lost on process restart
+- Memory usage grows with cached responses
+- Consider using LRU cache driver for automatic eviction
+- Not suitable for distributed systems (each instance has its own cache)
+
+For production use, consider persistent storage like Redis or cloud KV stores.
+
+### Cache Invalidation
+
+The middleware provides automatic TTL-based expiration, but you may need manual invalidation for data updates:
+
+```typescript
+import { CacheManager } from "hono-universal-cache";
+
+const cache = new CacheManager(storage);
+
+// Invalidate specific key
+await cache.delete("/api/products/123");
+
+// Clear all cache
+await cache.clear();
+```
+
+### Performance Characteristics
+
+- **Cache hit**: ~1-5ms (depends on storage driver)
+- **Cache miss**: Full route handler execution time + storage write time
+- **Storage write**: Non-blocking, doesn't affect response time
+- **Memory overhead**: Minimal, stores only response body and metadata
