@@ -41,7 +41,9 @@
     "dev": "tsdown --watch",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "release": "pnpm build && pnpm typecheck && bumpp && pnpm run release:publish",
+    "release:publish": "gh release create v$(node -p \"require('./package.json').version\") --generate-notes"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",

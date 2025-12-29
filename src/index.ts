@@ -9,6 +9,7 @@ import {
   isCacheableStatus,
   shouldSkipCache,
 } from "./utils"
+import { getRuntimeKey } from "hono/adapter"
 
 /**
  * Universal cache middleware for Hono.
@@ -85,8 +86,8 @@ export const universalCache = (options: CacheOptions): MiddlewareHandler => {
     const cachePromise = cacheManager.set(key, res)
 
     // Use waitUntil if available (Cloudflare Workers, Vercel Edge)
-    if (c.executionCtx?.waitUntil) {
-      c.executionCtx.waitUntil(cachePromise)
+    if (getRuntimeKey() === 'workerd') {
+      c?.executionCtx?.waitUntil?.(cachePromise)
     } else {
       // For other runtimes, cache asynchronously but don't block response
       cachePromise.catch((error) => {
