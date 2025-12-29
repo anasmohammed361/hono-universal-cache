@@ -284,7 +284,7 @@ Use any [unstorage driver](https://unstorage.unjs.io/drivers):
 - **Cloudflare R2** - `unstorage/drivers/cloudflare-r2-binding`
 - **Vercel Blob** - `unstorage/drivers/vercel-blob`
 
-See [all 50+ drivers](https://unstorage.unjs.io/drivers) in the unstorage documentation.
+See [all drivers](https://unstorage.unjs.io/drivers) in the unstorage documentation.
 
 ## How It Works
 
