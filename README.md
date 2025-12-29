@@ -9,7 +9,7 @@ Cache **API responses** across **any runtime** - Cloudflare Workers, Vercel Edge
 ## Features
 
 ✨ **Universal Runtime Support** - Works everywhere Hono works  
-🗄️ **Multiple Storage Drivers** - Memory, Redis, Cloudflare KV, Vercel KV, filesystem, and [50+ more](https://unstorage.unjs.io/drivers)  
+🗄️ **Multiple Storage Drivers** - Memory, Redis, Cloudflare KV, Vercel KV, filesystem, and [more](https://unstorage.unjs.io/drivers)  
 ⚡ **TTL Support** - Automatic expiration with configurable time-to-live  
 🎯 **Selective Caching** - Control what gets cached by status code  
 🔑 **Custom Key Generation** - Flexible cache key strategies  
@@ -20,7 +20,7 @@ Cache **API responses** across **any runtime** - Cloudflare Workers, Vercel Edge
 ## Installation
 
 ```bash
-npm install hono-universal-cache unstorage
+pnpm add hono-universal-cache
 ```
 
 ## Quick Start
