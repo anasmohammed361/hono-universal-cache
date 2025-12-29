@@ -1,11 +1,11 @@
 {
-    "title": "Documentation",
-    "pages": [
-        "index",
-        "runtime-examples",
-        "storage-drivers",
-        "api-reference",
-        "use-cases",
-        "how-it-works"
-    ]
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "runtime-examples",
+    "storage-drivers",
+    "api-reference",
+    "use-cases",
+    "how-it-works"
+  ]
 }
