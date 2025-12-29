@@ -12,16 +12,23 @@ jobs:
       - uses: actions/checkout@v4
       
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
       
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build packages
+        run: pnpm build
+      
+      - name: Run tests
+        run: pnpm --filter hono-universal-cache test
+      
+      - name: Type check
+        run: pnpm --filter hono-universal-cache typecheck
 
   publish-npm:
     needs: build
@@ -30,8 +37,6 @@ jobs:
       - uses: actions/checkout@v4
       
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       
       - uses: actions/setup-node@v4
         with:
@@ -41,5 +46,6 @@ jobs:
       
       - run: pnpm install --frozen-lockfile
       - run: pnpm publish --no-git-checks
+        working-directory: packages/hono-universal-cache
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

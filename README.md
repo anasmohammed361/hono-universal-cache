@@ -1,368 +1,135 @@
-# hono-universal-cache
+# Turborepo starter
 
-Universal cache middleware for [Hono](https://hono.dev) powered by [unstorage](https://unstorage.unjs.io).
+This Turborepo starter is maintained by the Turborepo core team.
 
-Cache **API responses** across **any runtime** - Cloudflare Workers, Vercel Edge, Node.js, Bun, Deno, and more.
+## Using this example
 
-> **Note:** Optimized for API responses (JSON, text, HTML). For static assets (images, videos, files), use CDN/edge caching instead.
+Run the following command:
 
-## Features
-
-✨ **Universal Runtime Support** - Works everywhere Hono works  
-🗄️ **Multiple Storage Drivers** - Memory, Redis, Cloudflare KV, Vercel KV, filesystem, and [more](https://unstorage.unjs.io/drivers)  
-⚡ **TTL Support** - Automatic expiration with configurable time-to-live  
-🎯 **Selective Caching** - Control what gets cached by status code  
-🔑 **Custom Key Generation** - Flexible cache key strategies  
-🪶 **Lightweight** - Minimal overhead, focused on storage operations  
-🎨 **Simple & Predictable** - No magic, just storage-based caching  
-📦 **Efficient Storage** - Optimized for text-based API responses
-
-## Installation
-
-```bash
-npm install hono-universal-cache
-# or
-pnpm add hono-universal-cache
-# or
-yarn add hono-universal-cache
+```sh
+npx create-turbo@latest
 ```
 
-> **Note:** `unstorage` is included as a dependency - no need to install it separately!
+## What's inside?
 
-## Quick Start
+This Turborepo includes the following packages/apps:
 
-### Basic Usage (In-Memory)
+### Apps and Packages
 
-```typescript
-import { Hono } from 'hono'
-import { universalCache } from 'hono-universal-cache'
+- `docs`: a [Next.js](https://nextjs.org/) app
+- `web`: another [Next.js](https://nextjs.org/) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-const app = new Hono()
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-app.use('*', universalCache({
-  cacheName: 'my-app-cache',
-  ttl: 3600 // 1 hour
-}))
+### Utilities
 
-app.get('/api/data', (c) => {
-  return c.json({ timestamp: Date.now() })
-})
+This Turborepo has some additional tools already setup for you:
 
-export default app
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
+
+### Build
+
+To build all apps and packages, run the following command:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build
+yarn dlx turbo build
+pnpm exec turbo build
 ```
 
-### With Custom Storage Driver
+You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
-```typescript
-import { createStorage } from 'unstorage'
-import redisDriver from 'unstorage/drivers/redis'
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build --filter=docs
 
-const storage = createStorage({
-  driver: redisDriver({
-    host: 'localhost',
-    port: 6379
-  })
-})
-
-app.use('*', universalCache({
-  cacheName: 'api-cache',
-  storage,
-  ttl: 3600
-}))
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build --filter=docs
+yarn exec turbo build --filter=docs
+pnpm exec turbo build --filter=docs
 ```
 
-## Runtime-Specific Examples
+### Develop
 
-### Cloudflare Workers
+To develop all apps and packages, run the following command:
 
-```typescript
-import { Hono } from 'hono'
-import { universalCache } from 'hono-universal-cache'
-import { createStorage } from 'unstorage'
-import cloudflareKVBindingDriver from 'unstorage/drivers/cloudflare-kv-binding'
+```
+cd my-turborepo
 
-type Env = {
-  MY_KV: KVNamespace
-}
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev
 
-const app = new Hono<{ Bindings: Env }>()
-
-app.use('*', async (c, next) => {
-  const storage = createStorage({
-    driver: cloudflareKVBindingDriver({ 
-      binding: c.env.MY_KV 
-    })
-  })
-
-  return universalCache({
-    cacheName: 'worker-cache',
-    storage,
-    ttl: 3600
-  })(c, next)
-})
-
-export default app
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev
+yarn exec turbo dev
+pnpm exec turbo dev
 ```
 
-### Vercel Edge
+You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
 
-```typescript
-import { createStorage } from 'unstorage'
-import vercelKVDriver from 'unstorage/drivers/vercel-kv'
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev --filter=web
 
-const storage = createStorage({
-  driver: vercelKVDriver({
-    // Auto-detects from environment:
-    // KV_REST_API_URL and KV_REST_API_TOKEN
-  })
-})
-
-app.use('*', universalCache({
-  cacheName: 'edge-cache',
-  storage,
-  ttl: 3600
-}))
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev --filter=web
+yarn exec turbo dev --filter=web
+pnpm exec turbo dev --filter=web
 ```
 
-### Node.js / Bun (Filesystem)
+### Remote Caching
 
-```typescript
-import { createStorage } from 'unstorage'
-import fsDriver from 'unstorage/drivers/fs'
+> [!TIP]
+> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
 
-const storage = createStorage({
-  driver: fsDriver({
-    base: './cache'
-  })
-})
+Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
 
-app.use('*', universalCache({
-  cacheName: 'fs-cache',
-  storage,
-  ttl: 3600
-}))
+By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo login
+
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo login
+yarn exec turbo login
+pnpm exec turbo login
 ```
 
-### Redis
+This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
 
-```typescript
-import { createStorage } from 'unstorage'
-import redisDriver from 'unstorage/drivers/redis'
+Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
 
-const storage = createStorage({
-  driver: redisDriver({
-    host: 'localhost',
-    port: 6379,
-    // password: 'your-password'
-  })
-})
+```
+# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
+turbo link
 
-app.use('*', universalCache({
-  cacheName: 'redis-cache',
-  storage,
-  ttl: 3600
-}))
+# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
+npx turbo link
+yarn exec turbo link
+pnpm exec turbo link
 ```
 
-## API Reference
+## Useful Links
 
-### `universalCache(options)`
+Learn more about the power of Turborepo:
 
-Creates a Hono middleware for response caching.
-
-#### Options
-
-```typescript
-type CacheOptions = {
-  // Required: Cache namespace
-  cacheName: string | ((c: Context) => Promise<string> | string)
-  
-  // Optional: Unstorage instance (defaults to in-memory)
-  storage?: Storage
-  
-  // Optional: Time-to-live in seconds
-  ttl?: number
-  
-  // Optional: Status codes to cache (default: [200])
-  cacheableStatusCodes?: number[]
-  
-  // Optional: Custom cache key generator
-  keyGenerator?: (c: Context) => Promise<string> | string
-}
-```
-
-## Common Use Cases
-
-### Dynamic Cache Names
-
-Cache different tenants or users separately:
-
-```typescript
-app.use('*', universalCache({
-  cacheName: (c) => {
-    const tenant = c.req.header('X-Tenant-ID') || 'default'
-    return `cache:${tenant}`
-  },
-  storage,
-  ttl: 3600
-}))
-```
-
-### Custom Key Generation
-
-Cache based on custom logic (e.g., ignore specific query params):
-
-```typescript
-app.use('*', universalCache({
-  cacheName: 'api-cache',
-  keyGenerator: (c) => {
-    const url = new URL(c.req.url)
-    // Ignore tracking parameters
-    url.searchParams.delete('utm_source')
-    url.searchParams.delete('utm_campaign')
-    return url.toString()
-  },
-  storage
-}))
-```
-
-### Selective Caching by Status Code
-
-Cache successful and redirect responses:
-
-```typescript
-app.use('*', universalCache({
-  cacheName: 'selective-cache',
-  cacheableStatusCodes: [200, 201, 301, 302],
-  storage
-}))
-```
-
-
-## Storage Drivers
-
-Use any [unstorage driver](https://unstorage.unjs.io/drivers):
-
-### Popular Drivers
-
-- **Memory** - `unstorage/drivers/memory` (default, ephemeral)
-- **Filesystem** - `unstorage/drivers/fs` (Node.js/Bun)
-- **Redis** - `unstorage/drivers/redis` (persistent, distributed)
-- **Cloudflare KV** - `unstorage/drivers/cloudflare-kv-binding`
-- **Vercel KV** - `unstorage/drivers/vercel-kv`
-- **MongoDB** - `unstorage/drivers/mongodb`
-- **Upstash Redis** - `unstorage/drivers/upstash`
-- **LRU Cache** - `unstorage/drivers/lru-cache` (in-memory with eviction)
-
-### Cloud Storage
-
-- **AWS S3** - `unstorage/drivers/s3`
-- **Azure Blob** - `unstorage/drivers/azure-storage-blob`
-- **Cloudflare R2** - `unstorage/drivers/cloudflare-r2-binding`
-- **Vercel Blob** - `unstorage/drivers/vercel-blob`
-
-See [all drivers](https://unstorage.unjs.io/drivers) in the unstorage documentation.
-
-## How It Works
-
-1. **Request arrives** → Middleware generates cache key
-2. **Check cache** → Retrieve from storage if exists and not expired
-3. **Cache hit** → Return cached response immediately
-4. **Cache miss** → Execute route handler
-5. **Check cacheability** → Verify status code is cacheable
-6. **Store response** → Save text body to storage with TTL metadata (non-blocking)
-7. **Return response** → Send to client
-
-## Important Notes
-
-### Optimized for API Responses
-
-This middleware is designed for **text-based API responses**:
-
-- ✅ **JSON APIs** - Perfect use case
-- ✅ **Text responses** - Works great
-- ✅ **HTML pages** - Fully supported
-- ✅ **XML/RSS feeds** - No problem
-- ❌ **Binary assets** (images, PDFs, videos) - Use CDN/edge caching instead
-
-**Why not binary?** The middleware uses `response.text()` for optimal storage efficiency. For static assets, use:
-- CDN caching (Cloudflare, CloudFront)
-- Object storage (S3, R2, Blob Storage)
-- Hono's built-in static file serving with CDN
-
-
-
-### Storage-Only Caching
-
-This middleware handles **server-side storage caching only**:
-
-- ✅ Stores responses in Redis, KV, filesystem, etc.
-- ✅ Caches based on status codes and TTL configuration
-- 💡 Independent of HTTP caching headers - works purely at the storage layer
-
-### Non-blocking Cache Writes
-
-Cache writes happen asynchronously and don't block responses:
-
-- **Cloudflare Workers/Vercel Edge**: Uses `waitUntil()` for background writes
-- **Other runtimes**: Uses promises with error handling
-
-## Advanced Usage
-
-### CacheManager API
-
-Access the low-level cache manager for manual operations:
-
-```typescript
-import { CacheManager } from 'hono-universal-cache'
-import { createStorage } from 'unstorage'
-
-const storage = createStorage()
-const cache = new CacheManager(storage, 3600) // 1 hour TTL
-
-// Manual cache operations
-await cache.set('key', response)
-const cached = await cache.get('key')
-const exists = await cache.has('key')
-await cache.delete('key')
-await cache.clear()
-const keys = await cache.keys()
-```
-
-### Per-Route Caching
-
-Apply caching to specific routes only:
-
-```typescript
-const app = new Hono()
-
-// Global middleware without cache
-app.use('*', logger())
-
-// Cache only API routes
-app.use('/api/*', universalCache({
-  cacheName: 'api-cache',
-  storage,
-  ttl: 300 // 5 minutes
-}))
-
-// Cache product pages longer
-app.use('/products/*', universalCache({
-  cacheName: 'products-cache',
-  storage,
-  ttl: 3600 // 1 hour
-}))
-```
-
-## License
-
-MIT
-
-## Contributing
-
-Contributions welcome! Please open an issue or PR.
-
-## Credits
-
-- [Hono](https://hono.dev) - Ultrafast web framework
-- [unstorage](https://unstorage.unjs.io) - Universal storage layer
+- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
+- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
+- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
+- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
+- [Configuration Options](https://turborepo.com/docs/reference/configuration)
+- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
