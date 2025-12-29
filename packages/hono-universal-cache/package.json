@@ -1,0 +1,62 @@
+{
+  "name": "hono-universal-cache",
+  "type": "module",
+  "version": "0.1.3",
+  "description": "Universal cache middleware for Hono powered by unstorage - works across Cloudflare Workers, Vercel Edge, Node.js, Bun, Deno, and more.",
+  "author": "Anas Mohammed",
+  "license": "MIT",
+  "homepage": "https://github.com/anasmohammed361/hono-universal-cache#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anasmohammed361/hono-universal-cache.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anasmohammed361/hono-universal-cache/issues"
+  },
+  "keywords": [
+    "hono",
+    "cache",
+    "middleware",
+    "universal",
+    "unstorage",
+    "cloudflare",
+    "vercel",
+    "edge",
+    "workers",
+    "redis",
+    "kv"
+  ],
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build",
+    "release": "pnpm build && pnpm typecheck && bumpp && pnpm run release:publish",
+    "release:publish": "gh release create v$(node -p \"require('./package.json').version\") --generate-notes"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "bumpp": "^10.3.2",
+    "hono": "^4.11.3",
+    "tsdown": "^0.18.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "unstorage": "^1.17.3"
+  },
+  "peerDependencies": {
+    "hono": ">=4.0.0"
+  }
+}
