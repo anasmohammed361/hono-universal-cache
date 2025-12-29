@@ -14,7 +14,7 @@ Cache **API responses** across **any runtime** - Cloudflare Workers, Vercel Edge
 🎯 **Selective Caching** - Control what gets cached by status code  
 🔑 **Custom Key Generation** - Flexible cache key strategies  
 🪶 **Lightweight** - Minimal overhead, focused on storage operations  
-🎨 **HTTP Header Agnostic** - You control your own Cache-Control headers  
+🎨 **Simple & Predictable** - No magic, just storage-based caching  
 📦 **Efficient Storage** - Optimized for text-based API responses
 
 ## Installation
@@ -45,8 +45,6 @@ app.use('*', universalCache({
 }))
 
 app.get('/api/data', (c) => {
-  // Set your own Cache-Control headers
-  c.header('Cache-Control', 'public, max-age=3600')
   return c.json({ timestamp: Date.now() })
 })
 
@@ -240,27 +238,6 @@ app.use('*', universalCache({
 }))
 ```
 
-### Managing HTTP Headers
-
-The middleware focuses on storage-level caching. You control HTTP headers in your route handlers:
-
-```typescript
-app.get('/api/public', (c) => {
-  // Set headers for browser/CDN caching
-  c.header('Cache-Control', 'public, max-age=3600')
-  c.header('Vary', 'Accept-Encoding')
-  
-  return c.json({ data: 'public data' })
-})
-
-app.get('/api/private', (c) => {
-  // Private data - browser should not cache
-  c.header('Cache-Control', 'private, no-cache')
-  
-  // But server-side cache can still store it
-  return c.json({ data: 'user-specific data' })
-})
-```
 
 ## Storage Drivers
 
@@ -292,7 +269,7 @@ See [all drivers](https://unstorage.unjs.io/drivers) in the unstorage documentat
 2. **Check cache** → Retrieve from storage if exists and not expired
 3. **Cache hit** → Return cached response immediately
 4. **Cache miss** → Execute route handler
-5. **Check cacheability** → Verify status code and Vary header
+5. **Check cacheability** → Verify status code is cacheable
 6. **Store response** → Save text body to storage with TTL metadata (non-blocking)
 7. **Return response** → Send to client
 
@@ -313,24 +290,15 @@ This middleware is designed for **text-based API responses**:
 - Object storage (S3, R2, Blob Storage)
 - Hono's built-in static file serving with CDN
 
-### Vary: * Behavior
 
-Responses with `Vary: *` header are **never cached**, per RFC 9111:
 
-```typescript
-app.get('/api/uncacheable', (c) => {
-  c.header('Vary', '*') // This response will not be cached
-  return c.json({ random: Math.random() })
-})
-```
-
-### HTTP Headers vs Storage Caching
+### Storage-Only Caching
 
 This middleware handles **server-side storage caching only**:
 
 - ✅ Stores responses in Redis, KV, filesystem, etc.
-- ❌ Does NOT modify Cache-Control or other HTTP headers
-- 💡 You control browser/CDN caching via headers in your routes
+- ✅ Caches based on status codes and TTL configuration
+- 💡 Independent of HTTP caching headers - works purely at the storage layer
 
 ### Non-blocking Cache Writes
 
