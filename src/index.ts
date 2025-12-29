@@ -17,9 +17,23 @@ import { getRuntimeKey } from "hono/adapter"
  * Works with Cloudflare Workers, Vercel Edge, Node.js, Bun, Deno, and more.
  * 
  * @param options - Cache configuration options
+ * @param options.cacheName - Cache namespace, either a string or a function that returns a string.
+ *                             Used to organize cached entries. Functions receive the Hono context
+ *                             and can be async for dynamic cache names (e.g., tenant-based caching).
+ * @param options.storage - Unstorage instance for cache persistence. If not provided, defaults to
+ *                          in-memory storage (recommended for development only). Use drivers like
+ *                          Cloudflare KV, Redis, or Vercel KV for production.
+ * @param options.ttl - Time-to-live for cached entries in seconds. After this duration, entries
+ *                      are considered expired and will be removed on next access. Omit for no expiration.
+ * @param options.cacheableStatusCodes - Array of HTTP status codes to cache. Only responses with
+ *                                       these status codes will be stored. Defaults to `[200]`.
+ * @param options.keyGenerator - Custom function to generate cache keys from the Hono context.
+ *                               Defaults to using the full request URL. Can be async. Useful for
+ *                               ignoring query parameters or creating custom cache strategies.
+ * 
  * @returns Hono middleware handler
  * 
- * @example
+ * @example Basic usage with TTL
  * ```ts
  * import { Hono } from 'hono'
  * import { universalCache } from 'hono-universal-cache'
@@ -28,7 +42,60 @@ import { getRuntimeKey } from "hono/adapter"
  * 
  * app.use('*', universalCache({
  *   cacheName: 'my-app-cache',
- *   ttl: 3600
+ *   ttl: 3600 // Cache for 1 hour
+ * }))
+ * ```
+ * 
+ * @example With custom storage driver (Cloudflare KV)
+ * ```ts
+ * import { Hono } from 'hono'
+ * import { universalCache } from 'hono-universal-cache'
+ * import { createStorage } from 'unstorage'
+ * import cloudflareKVBindingDriver from 'unstorage/drivers/cloudflare-kv-binding'
+ * 
+ * const app = new Hono<{ Bindings: { CACHE: KVNamespace } }>()
+ * 
+ * app.use('*', async (c, next) => {
+ *   const storage = createStorage({
+ *     driver: cloudflareKVBindingDriver({ binding: c.env.CACHE })
+ *   })
+ *   
+ *   return universalCache({
+ *     cacheName: 'api-cache',
+ *     storage,
+ *     ttl: 300
+ *   })(c, next)
+ * })
+ * ```
+ * 
+ * @example Dynamic cache names for multi-tenancy
+ * ```ts
+ * app.use('*', universalCache({
+ *   cacheName: (c) => {
+ *     const tenantId = c.req.header('X-Tenant-ID') || 'default'
+ *     return `cache:${tenantId}`
+ *   },
+ *   ttl: 600
+ * }))
+ * ```
+ * 
+ * @example Custom key generator to ignore query params
+ * ```ts
+ * app.use('*', universalCache({
+ *   cacheName: 'api-cache',
+ *   keyGenerator: (c) => {
+ *     const url = new URL(c.req.url)
+ *     return url.pathname // Ignore query parameters
+ *   }
+ * }))
+ * ```
+ * 
+ * @example Cache multiple status codes
+ * ```ts
+ * app.use('*', universalCache({
+ *   cacheName: 'api-cache',
+ *   cacheableStatusCodes: [200, 201, 301, 302],
+ *   ttl: 1800
  * }))
  * ```
  */
