@@ -38,7 +38,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       
       - name: Build packages
-        run: pnpm build
+        run: pnpm build --filter hono-universal-cache
       
       - name: Run tests
         run: pnpm --filter hono-universal-cache test
