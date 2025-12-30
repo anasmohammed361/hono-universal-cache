@@ -321,15 +321,54 @@ See [all drivers](https://unstorage.unjs.io/drivers) in the unstorage documentat
 
 ## How It Works
 
-1. **Request arrives** → Middleware generates cache key
-2. **Check cache** → Retrieve from storage if exists and not expired
-3. **Cache hit** → Return cached response immediately
-4. **Cache miss** → Execute route handler
-5. **Check cacheability** → Verify status code is cacheable
-6. **Store response** → Save text body to storage with TTL metadata (non-blocking)
-7. **Return response** → Send to client
+1. **Request arrives** → Check if request method is GET (or bypass is enabled)
+2. **Method check** → Skip caching for non-GET requests (POST, PUT, DELETE, etc.)
+3. **Generate cache key** → Create unique key from request
+4. **Check cache** → Retrieve from storage if exists and not expired
+5. **Cache hit** → Return cached response immediately
+6. **Cache miss** → Execute route handler
+7. **Check cacheability** → Verify status code is cacheable
+8. **Store response** → Save text body to storage with TTL metadata (non-blocking)
+9. **Return response** → Send to client
 
 ## Important Notes
+
+### GET Requests Only
+
+By default, **only GET requests are cached**. This follows HTTP semantics and prevents issues with caching state-changing operations:
+
+```typescript
+// ✅ GET requests are cached
+GET /api/users → cached
+
+// ❌ POST/PUT/DELETE requests skip cache entirely
+POST /api/users → never cached
+PUT /api/users/123 → never cached
+DELETE /api/users/123 → never cached
+```
+
+**Why?** Caching POST/PUT/DELETE responses can lead to:
+- Stale data being served
+- Lost updates and data corruption
+- Security vulnerabilities
+- Incorrect application behavior
+
+#### Bypass Method Check (Advanced)
+
+If you have a specific use case requiring caching of non-GET requests, use the `bypassMethodCheck` flag:
+
+```typescript
+app.use(
+  "*",
+  universalCache({
+    cacheName: "api-cache",
+    bypassMethodCheck: true, // ⚠️ Use with extreme caution!
+    ttl: 60,
+  }),
+);
+```
+
+⚠️ **Warning:** Only enable this if you fully understand the implications and have a valid use case (e.g., caching idempotent POST requests in a controlled environment).
 
 ### Optimized for API Responses
 

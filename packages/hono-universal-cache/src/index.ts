@@ -113,6 +113,13 @@ export const universalCache = (options: CacheOptions): MiddlewareHandler => {
 
   // Return middleware handler
   return async (c, next) => {
+    // Only cache GET requests (unless bypassed)
+    const method = c.req.method.toUpperCase();
+    if (!options.bypassMethodCheck && method !== "GET") {
+      console.warn(`Cache Middleware Applied for: ${method} - Skipping Cache.`);
+      return next();
+    }
+
     // Generate cache key
     const baseKey = await generateCacheKey(c, options.keyGenerator);
 
