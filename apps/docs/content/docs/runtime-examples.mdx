@@ -1,0 +1,126 @@
+---
+title: Runtime Examples
+description: Platform-specific examples for different JavaScript runtimes
+---
+
+# Runtime-Specific Examples
+
+Learn how to use hono-universal-cache across different JavaScript runtimes and platforms.
+
+## Cloudflare Workers
+
+```typescript
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+import cloudflareKVBindingDriver from "unstorage/drivers/cloudflare-kv-binding";
+
+type Env = {
+  MY_KV: KVNamespace;
+};
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use("*", async (c, next) => {
+  const storage = createStorage({
+    driver: cloudflareKVBindingDriver({
+      binding: c.env.MY_KV,
+    }),
+  });
+
+  return universalCache({
+    cacheName: "worker-cache",
+    storage,
+    ttl: 3600,
+  })(c, next);
+});
+
+export default app;
+```
+
+## Vercel Edge
+
+```typescript
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+import vercelKVDriver from "unstorage/drivers/vercel-kv";
+
+const storage = createStorage({
+  driver: vercelKVDriver({
+    // Auto-detects from environment:
+    // KV_REST_API_URL and KV_REST_API_TOKEN
+  }),
+});
+
+const app = new Hono();
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "edge-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
+
+export default app;
+```
+
+## Node.js / Bun (Filesystem)
+
+```typescript
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+import fsDriver from "unstorage/drivers/fs";
+
+const storage = createStorage({
+  driver: fsDriver({
+    base: "./cache",
+  }),
+});
+
+const app = new Hono();
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "fs-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
+
+export default app;
+```
+
+## Redis
+
+```typescript
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+import redisDriver from "unstorage/drivers/redis";
+
+const storage = createStorage({
+  driver: redisDriver({
+    host: "localhost",
+    port: 6379,
+    // password: 'your-password'
+  }),
+});
+
+const app = new Hono();
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "redis-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
+
+export default app;
+```

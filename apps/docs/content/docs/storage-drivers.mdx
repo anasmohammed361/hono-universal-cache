@@ -1,0 +1,221 @@
+---
+title: Storage Drivers
+description: Available storage drivers and how to use them
+---
+
+# Storage Drivers
+
+hono-universal-cache uses [unstorage](https://unstorage.unjs.io) under the hood, giving you access to a wide variety of storage drivers.
+
+## Popular Drivers
+
+### Memory (Default)
+
+Ephemeral in-memory storage. Data is lost when the process restarts.
+
+```typescript
+import { universalCache } from "hono-universal-cache";
+
+// Uses memory driver by default
+app.use(
+  "*",
+  universalCache({
+    cacheName: "my-cache",
+    ttl: 3600,
+  }),
+);
+```
+
+### Filesystem
+
+Persistent file-based storage for Node.js and Bun.
+
+```typescript
+import { createStorage } from "unstorage";
+import fsDriver from "unstorage/drivers/fs";
+
+const storage = createStorage({
+  driver: fsDriver({
+    base: "./cache",
+  }),
+});
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "fs-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
+```
+
+### Redis
+
+Distributed, persistent caching with Redis.
+
+```typescript
+import { createStorage } from "unstorage";
+import redisDriver from "unstorage/drivers/redis";
+
+const storage = createStorage({
+  driver: redisDriver({
+    host: "localhost",
+    port: 6379,
+    password: "your-password", // optional
+    db: 0, // optional
+  }),
+});
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "redis-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
+```
+
+### Cloudflare KV
+
+Cloudflare Workers KV storage.
+
+```typescript
+import { createStorage } from "unstorage";
+import cloudflareKVBindingDriver from "unstorage/drivers/cloudflare-kv-binding";
+
+const storage = createStorage({
+  driver: cloudflareKVBindingDriver({
+    binding: c.env.MY_KV,
+  }),
+});
+```
+
+### Vercel KV
+
+Vercel's KV storage powered by Upstash Redis.
+
+```typescript
+import { createStorage } from "unstorage";
+import vercelKVDriver from "unstorage/drivers/vercel-kv";
+
+const storage = createStorage({
+  driver: vercelKVDriver({
+    // Auto-detects from environment:
+    // KV_REST_API_URL and KV_REST_API_TOKEN
+  }),
+});
+```
+
+### MongoDB
+
+MongoDB-backed storage.
+
+```typescript
+import { createStorage } from "unstorage";
+import mongodbDriver from "unstorage/drivers/mongodb";
+
+const storage = createStorage({
+  driver: mongodbDriver({
+    connectionString: "mongodb://localhost:27017",
+    databaseName: "mydb",
+    collectionName: "cache",
+  }),
+});
+```
+
+### Upstash Redis
+
+Serverless Redis from Upstash.
+
+```typescript
+import { createStorage } from "unstorage";
+import upstashDriver from "unstorage/drivers/upstash";
+
+const storage = createStorage({
+  driver: upstashDriver({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  }),
+});
+```
+
+### LRU Cache
+
+In-memory cache with automatic eviction (Least Recently Used).
+
+```typescript
+import { createStorage } from "unstorage";
+import lruCacheDriver from "unstorage/drivers/lru-cache";
+
+const storage = createStorage({
+  driver: lruCacheDriver({
+    max: 500, // Maximum number of items
+    maxSize: 5000, // Maximum size in bytes
+  }),
+});
+```
+
+## Cloud Storage
+
+### AWS S3
+
+```typescript
+import { createStorage } from "unstorage";
+import s3Driver from "unstorage/drivers/s3";
+
+const storage = createStorage({
+  driver: s3Driver({
+    bucket: "my-bucket",
+    region: "us-east-1",
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  }),
+});
+```
+
+### Azure Blob Storage
+
+```typescript
+import { createStorage } from "unstorage";
+import azureBlobDriver from "unstorage/drivers/azure-storage-blob";
+
+const storage = createStorage({
+  driver: azureBlobDriver({
+    accountName: process.env.AZURE_STORAGE_ACCOUNT_NAME,
+    accountKey: process.env.AZURE_STORAGE_ACCOUNT_KEY,
+    containerName: "cache",
+  }),
+});
+```
+
+### Cloudflare R2
+
+```typescript
+import { createStorage } from "unstorage";
+import r2Driver from "unstorage/drivers/cloudflare-r2-binding";
+
+const storage = createStorage({
+  driver: r2Driver({
+    binding: c.env.MY_R2_BUCKET,
+  }),
+});
+```
+
+### Vercel Blob
+
+```typescript
+import { createStorage } from "unstorage";
+import vercelBlobDriver from "unstorage/drivers/vercel-blob";
+
+const storage = createStorage({
+  driver: vercelBlobDriver({
+    // Auto-detects from environment
+  }),
+});
+```
+
+## More Drivers
+
+See the complete list of available drivers in the [unstorage documentation](https://unstorage.unjs.io/drivers).

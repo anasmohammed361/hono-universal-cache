@@ -1,0 +1,5 @@
+name = "hono-universal-cache"
+pages_build_output_dir = "out"
+
+# Optional but recommended
+compatibility_date = "2024-12-01"

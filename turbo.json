@@ -2,6 +2,11 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
   "tasks": {
+    "format": {
+      "dependsOn": [
+        "^format"
+      ]
+    },
     "build": {
       "dependsOn": [
         "^build"
@@ -11,7 +16,9 @@
         ".env*"
       ],
       "outputs": [
-        "dist/**"
+        "dist/**",
+        ".next/**",
+        "out/**"
       ]
     },
     "lint": {

@@ -1,0 +1,192 @@
+---
+title: API Reference
+description: Complete API documentation for hono-universal-cache
+---
+
+# API Reference
+
+## `universalCache(options)`
+
+Creates a Hono middleware for response caching.
+
+### Options
+
+```typescript
+type CacheOptions = {
+  // Required: Cache namespace
+  cacheName: string | ((c: Context) => Promise<string> | string);
+
+  // Optional: Unstorage instance (defaults to in-memory)
+  storage?: Storage;
+
+  // Optional: Time-to-live in seconds
+  ttl?: number;
+
+  // Optional: Status codes to cache (default: [200])
+  cacheableStatusCodes?: number[];
+
+  // Optional: Custom cache key generator
+  keyGenerator?: (c: Context) => Promise<string> | string;
+};
+```
+
+### Parameters
+
+#### `cacheName` (required)
+
+- **Type:** `string | ((c: Context) => Promise<string> | string)`
+- **Description:** The namespace for your cache. Can be a static string or a function that returns a string based on the request context.
+
+**Example:**
+
+```typescript
+// Static cache name
+cacheName: "my-cache";
+
+// Dynamic cache name
+cacheName: (c) => {
+  const tenant = c.req.header("X-Tenant-ID") || "default";
+  return `cache:${tenant}`;
+};
+```
+
+#### `storage` (optional)
+
+- **Type:** `Storage` (from unstorage)
+- **Default:** In-memory storage
+- **Description:** An unstorage instance for persistent caching.
+
+**Example:**
+
+```typescript
+import { createStorage } from "unstorage";
+import redisDriver from "unstorage/drivers/redis";
+
+const storage = createStorage({
+  driver: redisDriver({
+    host: "localhost",
+    port: 6379,
+  }),
+});
+```
+
+#### `ttl` (optional)
+
+- **Type:** `number`
+- **Default:** `undefined` (no expiration)
+- **Description:** Time-to-live in seconds for cached responses.
+
+**Example:**
+
+```typescript
+ttl: 3600; // Cache for 1 hour
+ttl: 300; // Cache for 5 minutes
+```
+
+#### `cacheableStatusCodes` (optional)
+
+- **Type:** `number[]`
+- **Default:** `[200]`
+- **Description:** HTTP status codes that should be cached.
+
+**Example:**
+
+```typescript
+cacheableStatusCodes: [200, 201, 301, 302];
+```
+
+#### `keyGenerator` (optional)
+
+- **Type:** `(c: Context) => Promise<string> | string`
+- **Default:** Uses the full request URL
+- **Description:** Custom function to generate cache keys.
+
+**Example:**
+
+```typescript
+keyGenerator: (c) => {
+  const url = new URL(c.req.url);
+  // Ignore tracking parameters
+  url.searchParams.delete("utm_source");
+  url.searchParams.delete("utm_campaign");
+  return url.toString();
+};
+```
+
+## `CacheManager`
+
+Low-level cache manager for manual cache operations.
+
+### Constructor
+
+```typescript
+new CacheManager(storage: Storage, ttl?: number)
+```
+
+### Methods
+
+#### `set(key: string, response: Response): Promise<void>`
+
+Store a response in the cache.
+
+```typescript
+await cache.set("key", response);
+```
+
+#### `get(key: string): Promise<Response | null>`
+
+Retrieve a cached response.
+
+```typescript
+const cached = await cache.get("key");
+```
+
+#### `has(key: string): Promise<boolean>`
+
+Check if a key exists in the cache.
+
+```typescript
+const exists = await cache.has("key");
+```
+
+#### `delete(key: string): Promise<void>`
+
+Delete a specific cache entry.
+
+```typescript
+await cache.delete("key");
+```
+
+#### `clear(): Promise<void>`
+
+Clear all cache entries.
+
+```typescript
+await cache.clear();
+```
+
+#### `keys(): Promise<string[]>`
+
+Get all cache keys.
+
+```typescript
+const keys = await cache.keys();
+```
+
+### Example
+
+```typescript
+import { CacheManager } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+
+const storage = createStorage();
+const cache = new CacheManager(storage, 3600); // 1 hour TTL
+
+// Manual cache operations
+await cache.set("key", response);
+const cached = await cache.get("key");
+const exists = await cache.has("key");
+await cache.delete("key");
+await cache.clear();
+const keys = await cache.keys();
+```

@@ -34,41 +34,47 @@ yarn add hono-universal-cache
 ### Basic Usage (In-Memory)
 
 ```typescript
-import { Hono } from 'hono'
-import { universalCache } from 'hono-universal-cache'
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
 
-const app = new Hono()
+const app = new Hono();
 
-app.use('*', universalCache({
-  cacheName: 'my-app-cache',
-  ttl: 3600 // 1 hour
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "my-app-cache",
+    ttl: 3600, // 1 hour
+  }),
+);
 
-app.get('/api/data', (c) => {
-  return c.json({ timestamp: Date.now() })
-})
+app.get("/api/data", (c) => {
+  return c.json({ timestamp: Date.now() });
+});
 
-export default app
+export default app;
 ```
 
 ### With Custom Storage Driver
 
 ```typescript
-import { createStorage } from 'unstorage'
-import redisDriver from 'unstorage/drivers/redis'
+import { createStorage } from "unstorage";
+import redisDriver from "unstorage/drivers/redis";
 
 const storage = createStorage({
   driver: redisDriver({
-    host: 'localhost',
-    port: 6379
-  })
-})
+    host: "localhost",
+    port: 6379,
+  }),
+});
 
-app.use('*', universalCache({
-  cacheName: 'api-cache',
-  storage,
-  ttl: 3600
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "api-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
 ```
 
 ## Runtime-Specific Examples
@@ -76,92 +82,101 @@ app.use('*', universalCache({
 ### Cloudflare Workers
 
 ```typescript
-import { Hono } from 'hono'
-import { universalCache } from 'hono-universal-cache'
-import { createStorage } from 'unstorage'
-import cloudflareKVBindingDriver from 'unstorage/drivers/cloudflare-kv-binding'
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+import cloudflareKVBindingDriver from "unstorage/drivers/cloudflare-kv-binding";
 
 type Env = {
-  MY_KV: KVNamespace
-}
+  MY_KV: KVNamespace;
+};
 
-const app = new Hono<{ Bindings: Env }>()
+const app = new Hono<{ Bindings: Env }>();
 
-app.use('*', async (c, next) => {
+app.use("*", async (c, next) => {
   const storage = createStorage({
-    driver: cloudflareKVBindingDriver({ 
-      binding: c.env.MY_KV 
-    })
-  })
+    driver: cloudflareKVBindingDriver({
+      binding: c.env.MY_KV,
+    }),
+  });
 
   return universalCache({
-    cacheName: 'worker-cache',
+    cacheName: "worker-cache",
     storage,
-    ttl: 3600
-  })(c, next)
-})
+    ttl: 3600,
+  })(c, next);
+});
 
-export default app
+export default app;
 ```
 
 ### Vercel Edge
 
 ```typescript
-import { createStorage } from 'unstorage'
-import vercelKVDriver from 'unstorage/drivers/vercel-kv'
+import { createStorage } from "unstorage";
+import vercelKVDriver from "unstorage/drivers/vercel-kv";
 
 const storage = createStorage({
   driver: vercelKVDriver({
     // Auto-detects from environment:
     // KV_REST_API_URL and KV_REST_API_TOKEN
-  })
-})
+  }),
+});
 
-app.use('*', universalCache({
-  cacheName: 'edge-cache',
-  storage,
-  ttl: 3600
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "edge-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
 ```
 
 ### Node.js / Bun (Filesystem)
 
 ```typescript
-import { createStorage } from 'unstorage'
-import fsDriver from 'unstorage/drivers/fs'
+import { createStorage } from "unstorage";
+import fsDriver from "unstorage/drivers/fs";
 
 const storage = createStorage({
   driver: fsDriver({
-    base: './cache'
-  })
-})
+    base: "./cache",
+  }),
+});
 
-app.use('*', universalCache({
-  cacheName: 'fs-cache',
-  storage,
-  ttl: 3600
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "fs-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
 ```
 
 ### Redis
 
 ```typescript
-import { createStorage } from 'unstorage'
-import redisDriver from 'unstorage/drivers/redis'
+import { createStorage } from "unstorage";
+import redisDriver from "unstorage/drivers/redis";
 
 const storage = createStorage({
   driver: redisDriver({
-    host: 'localhost',
+    host: "localhost",
     port: 6379,
     // password: 'your-password'
-  })
-})
+  }),
+});
 
-app.use('*', universalCache({
-  cacheName: 'redis-cache',
-  storage,
-  ttl: 3600
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "redis-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
 ```
 
 ## API Reference
@@ -175,20 +190,20 @@ Creates a Hono middleware for response caching.
 ```typescript
 type CacheOptions = {
   // Required: Cache namespace
-  cacheName: string | ((c: Context) => Promise<string> | string)
-  
+  cacheName: string | ((c: Context) => Promise<string> | string);
+
   // Optional: Unstorage instance (defaults to in-memory)
-  storage?: Storage
-  
+  storage?: Storage;
+
   // Optional: Time-to-live in seconds
-  ttl?: number
-  
+  ttl?: number;
+
   // Optional: Status codes to cache (default: [200])
-  cacheableStatusCodes?: number[]
-  
+  cacheableStatusCodes?: number[];
+
   // Optional: Custom cache key generator
-  keyGenerator?: (c: Context) => Promise<string> | string
-}
+  keyGenerator?: (c: Context) => Promise<string> | string;
+};
 ```
 
 ## Common Use Cases
@@ -198,14 +213,17 @@ type CacheOptions = {
 Cache different tenants or users separately:
 
 ```typescript
-app.use('*', universalCache({
-  cacheName: (c) => {
-    const tenant = c.req.header('X-Tenant-ID') || 'default'
-    return `cache:${tenant}`
-  },
-  storage,
-  ttl: 3600
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: (c) => {
+      const tenant = c.req.header("X-Tenant-ID") || "default";
+      return `cache:${tenant}`;
+    },
+    storage,
+    ttl: 3600,
+  }),
+);
 ```
 
 ### Custom Key Generation
@@ -213,17 +231,20 @@ app.use('*', universalCache({
 Cache based on custom logic (e.g., ignore specific query params):
 
 ```typescript
-app.use('*', universalCache({
-  cacheName: 'api-cache',
-  keyGenerator: (c) => {
-    const url = new URL(c.req.url)
-    // Ignore tracking parameters
-    url.searchParams.delete('utm_source')
-    url.searchParams.delete('utm_campaign')
-    return url.toString()
-  },
-  storage
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "api-cache",
+    keyGenerator: (c) => {
+      const url = new URL(c.req.url);
+      // Ignore tracking parameters
+      url.searchParams.delete("utm_source");
+      url.searchParams.delete("utm_campaign");
+      return url.toString();
+    },
+    storage,
+  }),
+);
 ```
 
 ### Selective Caching by Status Code
@@ -231,13 +252,15 @@ app.use('*', universalCache({
 Cache successful and redirect responses:
 
 ```typescript
-app.use('*', universalCache({
-  cacheName: 'selective-cache',
-  cacheableStatusCodes: [200, 201, 301, 302],
-  storage
-}))
+app.use(
+  "*",
+  universalCache({
+    cacheName: "selective-cache",
+    cacheableStatusCodes: [200, 201, 301, 302],
+    storage,
+  }),
+);
 ```
-
 
 ## Storage Drivers
 
@@ -286,11 +309,10 @@ This middleware is designed for **text-based API responses**:
 - ❌ **Binary assets** (images, PDFs, videos) - Use CDN/edge caching instead
 
 **Why not binary?** The middleware uses `response.text()` for optimal storage efficiency. For static assets, use:
+
 - CDN caching (Cloudflare, CloudFront)
 - Object storage (S3, R2, Blob Storage)
 - Hono's built-in static file serving with CDN
-
-
 
 ### Storage-Only Caching
 
@@ -314,19 +336,19 @@ Cache writes happen asynchronously and don't block responses:
 Access the low-level cache manager for manual operations:
 
 ```typescript
-import { CacheManager } from 'hono-universal-cache'
-import { createStorage } from 'unstorage'
+import { CacheManager } from "hono-universal-cache";
+import { createStorage } from "unstorage";
 
-const storage = createStorage()
-const cache = new CacheManager(storage, 3600) // 1 hour TTL
+const storage = createStorage();
+const cache = new CacheManager(storage, 3600); // 1 hour TTL
 
 // Manual cache operations
-await cache.set('key', response)
-const cached = await cache.get('key')
-const exists = await cache.has('key')
-await cache.delete('key')
-await cache.clear()
-const keys = await cache.keys()
+await cache.set("key", response);
+const cached = await cache.get("key");
+const exists = await cache.has("key");
+await cache.delete("key");
+await cache.clear();
+const keys = await cache.keys();
 ```
 
 ### Per-Route Caching
@@ -334,24 +356,30 @@ const keys = await cache.keys()
 Apply caching to specific routes only:
 
 ```typescript
-const app = new Hono()
+const app = new Hono();
 
 // Global middleware without cache
-app.use('*', logger())
+app.use("*", logger());
 
 // Cache only API routes
-app.use('/api/*', universalCache({
-  cacheName: 'api-cache',
-  storage,
-  ttl: 300 // 5 minutes
-}))
+app.use(
+  "/api/*",
+  universalCache({
+    cacheName: "api-cache",
+    storage,
+    ttl: 300, // 5 minutes
+  }),
+);
 
 // Cache product pages longer
-app.use('/products/*', universalCache({
-  cacheName: 'products-cache',
-  storage,
-  ttl: 3600 // 1 hour
-}))
+app.use(
+  "/products/*",
+  universalCache({
+    cacheName: "products-cache",
+    storage,
+    ttl: 3600, // 1 hour
+  }),
+);
 ```
 
 ## License

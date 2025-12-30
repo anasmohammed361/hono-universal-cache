@@ -1,0 +1,102 @@
+---
+title: Introduction
+description: Universal cache middleware for Hono powered by unstorage
+---
+
+# hono-universal-cache
+
+Universal cache middleware for [Hono](https://hono.dev) powered by [unstorage](https://unstorage.unjs.io).
+
+Cache **API responses** across **any runtime** - Cloudflare Workers, Vercel Edge, Node.js, Bun, Deno, and more.
+
+<Callout type="info">
+  Optimized for API responses (JSON, text, HTML). For static assets (images, videos, files), use CDN/edge caching instead.
+</Callout>
+
+## Features
+
+- ✨ **Universal Runtime Support** - Works everywhere Hono works
+- 🗄️ **Multiple Storage Drivers** - Memory, Redis, Cloudflare KV, Vercel KV, filesystem, and [more](https://unstorage.unjs.io/drivers)
+- ⚡ **TTL Support** - Automatic expiration with configurable time-to-live
+- 🎯 **Selective Caching** - Control what gets cached by status code
+- 🔑 **Custom Key Generation** - Flexible cache key strategies
+- 🪶 **Lightweight** - Minimal overhead, focused on storage operations
+- 🎨 **Simple & Predictable** - No magic, just storage-based caching
+- 📦 **Efficient Storage** - Optimized for text-based API responses
+
+## Installation
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```bash
+    npm install hono-universal-cache
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add hono-universal-cache
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add hono-universal-cache
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add hono-universal-cache
+    ```
+  </Tab>
+</Tabs>
+
+<Callout>
+  `unstorage` is included as a dependency - no need to install it separately!
+</Callout>
+
+## Quick Start
+
+### Basic Usage (In-Memory)
+
+```typescript
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+
+const app = new Hono();
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "my-app-cache",
+    ttl: 3600, // 1 hour
+  }),
+);
+
+app.get("/api/data", (c) => {
+  return c.json({ timestamp: Date.now() });
+});
+
+export default app;
+```
+
+### With Custom Storage Driver
+
+```typescript
+import { createStorage } from "unstorage";
+import redisDriver from "unstorage/drivers/redis";
+
+const storage = createStorage({
+  driver: redisDriver({
+    host: "localhost",
+    port: 6379,
+  }),
+});
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: "api-cache",
+    storage,
+    ttl: 3600,
+  }),
+);
+```

@@ -1,0 +1,194 @@
+---
+title: Common Use Cases
+description: Real-world examples and patterns for using hono-universal-cache
+---
+
+# Common Use Cases
+
+Explore common patterns and use cases for implementing caching in your Hono applications.
+
+## Dynamic Cache Names
+
+Cache different tenants or users separately to avoid cache collisions.
+
+```typescript
+import { Hono } from "hono";
+import { universalCache } from "hono-universal-cache";
+
+const app = new Hono();
+
+app.use(
+  "*",
+  universalCache({
+    cacheName: (c) => {
+      const tenant = c.req.header("X-Tenant-ID") || "default";
+      return `cache:${tenant}`;
+    },
+    storage,
+    ttl: 3600,
+  }),
+);
+```
+
+## Custom Key Generation
+
+Ignore specific query parameters when generating cache keys.
+
+```typescript
+app.use(
+  "*",
+  universalCache({
+    cacheName: "api-cache",
+    keyGenerator: (c) => {
+      const url = new URL(c.req.url);
+      // Ignore tracking parameters
+      url.searchParams.delete("utm_source");
+      url.searchParams.delete("utm_campaign");
+      url.searchParams.delete("fbclid");
+      return url.toString();
+    },
+    storage,
+  }),
+);
+```
+
+## Selective Caching by Status Code
+
+Cache successful responses and redirects, but not errors.
+
+```typescript
+app.use(
+  "*",
+  universalCache({
+    cacheName: "selective-cache",
+    cacheableStatusCodes: [200, 201, 301, 302],
+    storage,
+  }),
+);
+```
+
+## Per-Route Caching
+
+Apply different caching strategies to different routes.
+
+```typescript
+const app = new Hono();
+
+// Cache only API routes with short TTL
+app.use(
+  "/api/*",
+  universalCache({
+    cacheName: "api-cache",
+    storage,
+    ttl: 300, // 5 minutes
+  }),
+);
+
+// Cache product pages with longer TTL
+app.use(
+  "/products/*",
+  universalCache({
+    cacheName: "products-cache",
+    storage,
+    ttl: 3600, // 1 hour
+  }),
+);
+
+// No caching for admin routes
+app.get("/admin/*", (c) => {
+  return c.json({ admin: "data" });
+});
+```
+
+## Cache Invalidation
+
+Manually invalidate cache entries when data changes.
+
+```typescript
+import { CacheManager } from "hono-universal-cache";
+import { createStorage } from "unstorage";
+
+const storage = createStorage();
+const cache = new CacheManager(storage);
+
+app.post("/api/products/:id", async (c) => {
+  const id = c.req.param("id");
+
+  // Update product in database
+  await updateProduct(id);
+
+  // Invalidate cache for this product
+  await cache.delete(`/api/products/${id}`);
+
+  return c.json({ success: true });
+});
+```
+
+## Multi-Tenant Caching
+
+Separate cache namespaces for different tenants.
+
+```typescript
+app.use("*", async (c, next) => {
+  const tenant = c.req.header("X-Tenant-ID");
+
+  if (!tenant) {
+    return c.json({ error: "Tenant ID required" }, 400);
+  }
+
+  return universalCache({
+    cacheName: `tenant:${tenant}`,
+    storage,
+    ttl: 1800, // 30 minutes
+  })(c, next);
+});
+```
+
+## API Rate Limiting with Cache
+
+Use cache to implement simple rate limiting.
+
+```typescript
+import { CacheManager } from "hono-universal-cache";
+
+const rateLimitCache = new CacheManager(storage, 60); // 1 minute TTL
+
+app.use("/api/*", async (c, next) => {
+  const ip = c.req.header("CF-Connecting-IP") || "unknown";
+  const key = `ratelimit:${ip}`;
+
+  const count = (await rateLimitCache.get(key)) || 0;
+
+  if (count > 100) {
+    return c.json({ error: "Rate limit exceeded" }, 429);
+  }
+
+  await rateLimitCache.set(key, count + 1);
+  return next();
+});
+```
+
+## Conditional Caching
+
+Cache responses based on custom conditions.
+
+```typescript
+app.use("*", async (c, next) => {
+  // Don't cache authenticated requests
+  const authHeader = c.req.header("Authorization");
+  if (authHeader) {
+    return next();
+  }
+
+  // Only cache GET requests
+  if (c.req.method !== "GET") {
+    return next();
+  }
+
+  return universalCache({
+    cacheName: "public-cache",
+    storage,
+    ttl: 600, // 10 minutes
+  })(c, next);
+});
+```

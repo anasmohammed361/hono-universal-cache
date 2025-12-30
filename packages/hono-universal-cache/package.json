@@ -42,6 +42,7 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
+    "format": "biome format --write",
     "release": "pnpm build && pnpm typecheck && bumpp && pnpm run release:publish",
     "release:publish": "gh release create v$(node -p \"require('./package.json').version\") --generate-notes"
   },
