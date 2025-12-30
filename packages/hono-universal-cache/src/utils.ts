@@ -2,10 +2,11 @@ import type { Context } from "hono";
 
 /**
  * Generates a cache key for the given context.
+ * Includes HTTP method to prevent cache collisions when caching non-GET requests.
  *
  * @param c - Hono context
  * @param keyGenerator - Optional custom key generator function
- * @returns Cache key string
+ * @returns Cache key string in format: "METHOD:url"
  */
 export async function generateCacheKey(
   c: Context,
@@ -14,7 +15,8 @@ export async function generateCacheKey(
   if (keyGenerator) {
     return await keyGenerator(c);
   }
-  return c.req.url;
+  // Include method to prevent collisions (e.g., GET /api vs POST /api)
+  return `${c.req.method}:${c.req.url}`;
 }
 
 /**

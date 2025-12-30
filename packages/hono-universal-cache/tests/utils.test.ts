@@ -18,12 +18,12 @@ async function getContext(url: string): Promise<Context> {
 }
 
 describe("generateCacheKey", () => {
-  it("should use full URL as default cache key", async () => {
+  it("should use full URL with method as default cache key", async () => {
     const c = await getContext("http://localhost:3000/api/test?foo=bar");
 
     const key = await generateCacheKey(c);
 
-    expect(key).toBe("http://localhost:3000/api/test?foo=bar");
+    expect(key).toBe("GET:http://localhost:3000/api/test?foo=bar");
   });
 
   it("should use custom key generator when provided", async () => {

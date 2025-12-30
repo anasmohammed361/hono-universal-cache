@@ -27,6 +27,9 @@ type CacheOptions = {
 
   // Optional: Custom cache key generator
   keyGenerator?: (c: Context) => Promise<string> | string;
+
+  // Optional: Bypass GET-only restriction (default: false)
+  bypassMethodCheck?: boolean;
 };
 ```
 
@@ -111,6 +114,47 @@ keyGenerator: (c) => {
   url.searchParams.delete("utm_campaign");
   return url.toString();
 };
+```
+
+#### `bypassMethodCheck` (optional)
+
+- **Type:** `boolean`
+- **Default:** `false`
+- **Description:** Bypass the GET-only method restriction and allow caching of all HTTP methods.
+
+<Callout type="warn">
+**Warning:** Use with extreme caution! Caching POST/PUT/DELETE requests can lead to stale data, incorrect behavior, and security issues. Only enable this if you have a specific use case and fully understand the implications.
+</Callout>
+
+**Default Behavior (GET only):**
+
+```typescript
+// Only GET requests are cached
+app.use('*', universalCache({
+  cacheName: 'api-cache',
+  ttl: 3600
+}))
+
+// ✅ GET /api/users → cached
+// ❌ POST /api/users → not cached
+// ❌ PUT /api/users/123 → not cached
+// ❌ DELETE /api/users/123 → not cached
+```
+
+**With Bypass Enabled:**
+
+```typescript
+// All HTTP methods can be cached
+app.use('*', universalCache({
+  cacheName: 'api-cache',
+  ttl: 3600,
+  bypassMethodCheck: true // ⚠️ Use with caution!
+}))
+
+// ✅ GET /api/users → cached
+// ✅ POST /api/users → cached (dangerous!)
+// ✅ PUT /api/users/123 → cached (dangerous!)
+// ✅ DELETE /api/users/123 → cached (dangerous!)
 ```
 
 ## `CacheManager`
