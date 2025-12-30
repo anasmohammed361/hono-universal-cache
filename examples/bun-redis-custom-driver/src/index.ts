@@ -1,18 +1,25 @@
 import { Hono } from "hono";
 import { universalCache } from "hono-universal-cache";
 import { createStorage } from "unstorage";
-import redisDriver from "unstorage/drivers/redis";
+import { bunRedisDriver } from "./custom-driver-redis";
 
 const app = new Hono();
 
-// Create Redis storage
+// Build Redis URL from environment variables
+const redisHost = process.env.REDIS_HOST || "localhost";
+const redisPort = process.env.REDIS_PORT || "6379";
+const redisPassword = process.env.REDIS_PASSWORD;
+const redisDb = process.env.REDIS_DB || "0";
+
+let redisUrl = `redis://${redisHost}:${redisPort}/${redisDb}`;
+if (redisPassword) {
+  redisUrl = `redis://:${redisPassword}@${redisHost}:${redisPort}/${redisDb}`;
+}
+
+// Create Redis storage using custom Bun driver
 const storage = createStorage({
-  driver: redisDriver({
-    base: "unstorage",
-    host: process.env.REDIS_HOST,
-    tls: false as any,
-    port: Number(process.env.REDIS_PORT),
-    password: process.env.REDIS_PASSWORD,
+  driver: bunRedisDriver({
+    url: redisUrl,
   }),
 });
 
@@ -20,7 +27,7 @@ const storage = createStorage({
 app.use(
   "*",
   universalCache({
-    cacheName: "nodejs-redis-example",
+    cacheName: "bun-redis-example",
     storage,
     ttl: Number(process.env.CACHE_TTL) || 3600,
   })
@@ -29,8 +36,9 @@ app.use(
 // Example routes
 app.get("/", (c) => {
   return c.json({
-    message: "Node.js + Redis Cache Example",
+    message: "Bun + Redis Cache Example",
     timestamp: new Date().toISOString(),
+    runtime: "Bun",
     endpoints: {
       "/": "This endpoint",
       "/api/time": "Current time (cached for 1 hour)",
@@ -67,4 +75,14 @@ app.get("/api/user/:id", (c) => {
   });
 });
 
-export { app };
+const port = Number(process.env.PORT) || 3000;
+
+console.log(`Server is running on http://localhost:${port}`);
+console.log(
+  `Redis cache enabled at ${process.env.REDIS_HOST || "localhost"}:${process.env.REDIS_PORT || 6379}`
+);
+
+export default {
+  port,
+  fetch: app.fetch,
+};
