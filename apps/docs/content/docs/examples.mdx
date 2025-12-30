@@ -1,0 +1,133 @@
+---
+title: Examples
+description: Starter examples for different runtimes and storage drivers
+---
+
+## Starter Examples
+
+Ready-to-use examples demonstrating `hono-universal-cache` with different runtimes and storage backends.
+
+### Node.js + Redis
+
+Full-featured example using Node.js with Redis storage.
+
+**Features:**
+- Express-style Node.js server with `@hono/node-server`
+- Redis cache storage with `ioredis`
+- Docker Compose setup for Redis
+- Environment variable configuration
+- Multiple cached and non-cached routes
+
+**Location:** [`examples/nodejs-redis`](https://github.com/anasmohammed361/hono-universal-cache/tree/main/examples/nodejs-redis)
+
+**Quick Start:**
+```bash
+cd examples/nodejs-redis
+pnpm install
+docker-compose up -d
+cp .env.example .env
+pnpm dev
+```
+
+**Test the cache:**
+```bash
+# First request - cache miss
+curl http://localhost:3000/time
+
+# Second request - cache hit (same response for 60s)
+curl http://localhost:3000/time
+```
+
+---
+
+### Bun + Redis (Custom Driver)
+
+Example using Bun's native Redis client with a custom unstorage driver.
+
+**Features:**
+- Bun runtime with native `.env` support
+- Custom Redis storage driver using Bun's `RedisClient`
+- No ioredis dependency - uses Bun's native Redis
+- Docker Compose setup
+- Demonstrates custom driver implementation
+
+**Location:** [`examples/bun-redis-custom-driver`](https://github.com/anasmohammed361/hono-universal-cache/tree/main/examples/bun-redis-custom-driver)
+
+**Quick Start:**
+```bash
+cd examples/bun-redis-custom-driver
+bun install
+docker-compose up -d
+cp .env.example .env
+bun dev
+```
+
+**Custom Driver:**
+The example includes a complete custom storage driver implementation at `src/custom-driver-redis.ts` showing how to create your own unstorage driver using Bun's native APIs.
+
+---
+
+### Next.js + Vercel KV
+
+Next.js App Router example with Vercel KV storage and Hono API routes.
+
+**Features:**
+- Next.js 16 with App Router
+- Hono API routes under `/hono` base path
+- Vercel KV storage for caching
+- Local development with `serverless-redis-http`
+- Production-ready for Vercel deployment
+
+**Location:** [`examples/nextjs-vercel-kv`](https://github.com/anasmohammed361/hono-universal-cache/tree/main/examples/nextjs-vercel-kv)
+
+**Quick Start:**
+```bash
+cd examples/nextjs-vercel-kv
+pnpm install
+docker-compose up -d  # For local development
+cp .env.example .env.local
+pnpm dev
+```
+
+**API Routes:**
+- `GET /hono/time` - Cached server time (60s TTL)
+
+## Example Structure
+
+Each example includes:
+
+- **`README.md`** - Detailed setup and usage instructions
+- **`.env.example`** - Environment variable template
+- **`docker-compose.yaml`** - Local development services (where applicable)
+- **`package.json`** - Dependencies and scripts
+- **Source code** - Complete working implementation
+
+## Running Examples
+
+All examples are part of the monorepo and use `pnpm` workspaces:
+
+```bash
+# From repository root
+pnpm install
+
+# Run specific example
+cd examples/[example-name]
+pnpm dev
+```
+
+## Creating Your Own
+
+Use these examples as templates for your own projects:
+
+1. **Choose the runtime** that matches your deployment target
+2. **Select a storage driver** based on your infrastructure
+3. **Copy the example** and customize for your needs
+4. **Configure environment variables** for your setup
+5. **Deploy** to your platform of choice
+
+## Need Help?
+
+- Check the example's `README.md` for detailed instructions
+- Review the [API Reference](/docs/api-reference) for configuration options
+- Explore [Storage Drivers](/docs/storage-drivers) for more backends
+- See [Use Cases](/docs/use-cases) for common patterns

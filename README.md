@@ -77,6 +77,39 @@ app.use(
 );
 ```
 
+## Starter Examples
+
+Ready-to-use examples for different runtimes and storage backends:
+
+### 📦 [Node.js + Redis](./examples/nodejs-redis)
+Complete Node.js server with Redis cache storage, Docker Compose setup, and environment configuration.
+
+```bash
+cd examples/nodejs-redis
+pnpm install && docker-compose up -d
+cp .env.example .env && pnpm dev
+```
+
+### ⚡ [Bun + Redis (Custom Driver)](./examples/bun-redis-custom-driver)
+Bun runtime with a custom Redis storage driver using Bun's native `RedisClient` - no ioredis dependency.
+
+```bash
+cd examples/bun-redis-custom-driver
+bun install && docker-compose up -d
+cp .env.example .env && bun dev
+```
+
+### 🔺 [Next.js + Vercel KV](./examples/nextjs-vercel-kv)
+Next.js App Router with Hono API routes and Vercel KV storage. Includes local development setup and production deployment guide.
+
+```bash
+cd examples/nextjs-vercel-kv
+pnpm install && docker-compose up -d
+cp .env.example .env.local && pnpm dev
+```
+
+Each example includes detailed setup instructions, Docker Compose configuration, and testing guides. Perfect for getting started quickly!
+
 ## Runtime-Specific Examples
 
 ### Cloudflare Workers
