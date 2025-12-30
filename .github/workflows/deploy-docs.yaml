@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - main
-
+    paths:
+      - "apps/docs/**"
+      
 env:
   TURBO_API: "http://127.0.0.1:8585"
   TURBO_TEAM: "hono-universal-cache"
