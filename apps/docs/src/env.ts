@@ -13,7 +13,7 @@ export const env = createEnv({
    * Must be prefixed with NEXT_PUBLIC_
    */
   client: {
-    NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string().optional(),
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: z.string(),
   },
 
   /**
