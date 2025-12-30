@@ -34,6 +34,15 @@ export type CacheOptions = {
    * After this duration, cached entries are considered stale.
    */
   ttl?: number;
+
+  /**
+   * Bypass the GET-only method check and allow caching of all HTTP methods.
+   * @default false
+   * @warning Use with caution! Caching POST/PUT/DELETE requests can lead to
+   * stale data, incorrect behavior, and security issues. Only enable this if
+   * you have a specific use case and understand the implications.
+   */
+  bypassMethodCheck?: boolean;
 };
 
 /**
