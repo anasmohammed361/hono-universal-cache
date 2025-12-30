@@ -1,0 +1,21 @@
+{
+  "name": "nodejs-redis",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.6",
+    "dotenv": "^16.4.5",
+    "hono": "^4.11.3",
+    "hono-universal-cache": "workspace:*",
+    "unstorage": "^1.17.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}
