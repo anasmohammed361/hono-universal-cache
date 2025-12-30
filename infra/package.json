@@ -1,0 +1,16 @@
+{
+    "name": "infra",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "sst dev",
+        "deploy": "sst deploy --stage production",
+        "remove": "sst remove",
+        "console": "sst console",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "sst": "^3.17.25"
+    }
+}
