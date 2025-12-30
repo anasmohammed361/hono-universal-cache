@@ -123,7 +123,6 @@ describe("CacheManager", () => {
 
     await cacheManager.set("empty-key", response);
     const retrieved = await cacheManager.get("empty-key");
-    console.log(retrieved);
 
     expect(retrieved).not.toBeNull();
     expect(retrieved?.status).toBe(204);
