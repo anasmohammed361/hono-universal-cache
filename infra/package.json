@@ -4,7 +4,6 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "dev": "sst dev",
         "deploy": "sst deploy --stage production",
         "remove": "sst remove",
         "console": "sst console",
